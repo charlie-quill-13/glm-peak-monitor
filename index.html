@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLM-5-Turbo Peak Status</title>
+<link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬤</text></svg>">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.5s;
+}
+.peak { background: #1a0a0a; color: #ff6b6b; }
+.offpeak-promo { background: #0a1a0a; color: #51cf66; }
+.offpeak-normal { background: #1a1a0a; color: #fcc419; }
+.card {
+  text-align: center;
+  padding: 3rem 4rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.status { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.multiplier { font-size: 4rem; font-weight: 800; letter-spacing: -2px; }
+.countdown { font-size: 1.1rem; opacity: 0.8; margin-top: 1.5rem; }
+.meta { font-size: 0.85rem; opacity: 0.5; margin-top: 1rem; }
+.promo-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 0.3rem; font-size: 0.8rem; margin-top: 1rem; }
+.peak .promo-badge { background: rgba(255,107,107,0.2); }
+.offpeak-promo .promo-badge { background: rgba(81,207,102,0.2); }
+.offpeak-normal .promo-badge { background: rgba(252,196,25,0.2); }
+.promo-expiry { font-size: 0.8rem; opacity: 0.4; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="status" id="status">—</div>
+  <div class="multiplier" id="multiplier">—</div>
+  <div class="countdown" id="countdown"></div>
+  <div class="promo-badge" id="badge"></div>
+  <div class="promo-expiry" id="promo-expiry"></div>
+  <div class="meta">GLM-5-Turbo · UTC+8 14:00–18:00 peak</div>
+</div>
+<script>
+const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
+const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
+const PROMO_END = new Date('2025-05-01T00:00:00Z'); // End of April 2026
+
+// Wait — the promo is until end of April 2026
+// Actually let me use 2026
+const PROMO_END_2026 = new Date('2026-05-01T00:00:00Z');
+
+function update() {
+  const now = new Date();
+  const utcH = now.getUTCHours();
+  const isPromo = now < PROMO_END_2026;
+  const isPeak = utcH >= PEAK_START && utcH < PEAK_END;
+
+  let mult, label, cls, emoji;
+  if (isPeak) {
+    mult = 3; label = 'PEAK'; cls = 'peak'; emoji = '🔴';
+  } else if (isPromo) {
+    mult = 1; label = 'OFF-PEAK (PROMO)'; cls = 'offpeak-promo'; emoji = '🟢';
+  } else {
+    mult = 2; label = 'OFF-PEAK'; cls = 'offpeak-normal'; emoji = '🟠';
+  }
+
+  document.body.className = cls;
+  document.getElementById('status').textContent = label;
+  document.getElementById('multiplier').textContent = mult + '×';
+  document.getElementById('badge').textContent = isPromo ? '🔥 Promo active: 1× off-peak' : 'Standard rates';
+
+  // Favicon
+  const colors = { peak: 'ff6b6b', 'offpeak-promo': '51cf66', 'offpeak-normal': 'fcc419' };
+  document.getElementById('favicon').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23${colors[cls]}'/></svg>`;
+  document.title = `${emoji} ${mult}× — ${label}`;
+
+  // Countdown to next change
+  let next;
+  if (isPeak) {
+    next = new Date(now); next.setUTCHours(PEAK_END, 0, 0, 0);
+    if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+  } else {
+    next = new Date(now); next.setUTCHours(PEAK_START, 0, 0, 0);
+    if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+  }
+  const diff = next - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('countdown').textContent = `Changes in ${h}h ${m}m ${s}s`;
+
+  // Promo expiry
+  if (isPromo) {
+    const pDiff = PROMO_END_2026 - now;
+    const pDays = Math.ceil(pDiff / 86400000);
+    document.getElementById('promo-expiry').textContent = `Promo ends in ${pDays} days (April 30, 2026)`;
+  } else {
+    document.getElementById('promo-expiry').textContent = '';
+  }
+}
+
+update();
+setInterval(update, 1000);
+</script>
+</body>
+</html>
