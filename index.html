@@ -49,11 +49,7 @@ body {
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
 const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
-const PROMO_END = new Date('2025-05-01T00:00:00Z'); // End of April 2026
-
-// Wait — the promo is until end of April 2026
-// Actually let me use 2026
-const PROMO_END_2026 = new Date('2026-05-01T00:00:00Z');
+const PROMO_END_2026 = new Date('2026-07-01T00:00:00Z'); // End of June 2026
 
 function update() {
   const now = new Date();
@@ -99,7 +95,7 @@ function update() {
   if (isPromo) {
     const pDiff = PROMO_END_2026 - now;
     const pDays = Math.ceil(pDiff / 86400000);
-    document.getElementById('promo-expiry').textContent = `Promo ends in ${pDays} days (April 30, 2026)`;
+    document.getElementById('promo-expiry').textContent = `Promo ends in ${pDays} days (June 30, 2026)`;
   } else {
     document.getElementById('promo-expiry').textContent = '';
   }
