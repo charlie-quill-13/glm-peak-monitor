@@ -44,7 +44,7 @@ body {
   <div class="countdown" id="countdown"></div>
   <div class="promo-badge" id="badge"></div>
   <div class="promo-expiry" id="promo-expiry"></div>
-  <div class="meta">GLM-5-Turbo · UTC+8 14:00–18:00 peak</div>
+  <div class="meta">GLM-5-Turbo · <span id="local-peak"></span></div>
 </div>
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
@@ -99,6 +99,11 @@ function update() {
   } else {
     document.getElementById('promo-expiry').textContent = '';
   }
+
+  // Local peak hours display
+  const localPeakStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PEAK_START)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const localPeakEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PEAK_END)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('local-peak').textContent = `${localPeakStart}–${localPeakEnd} peak (local)`;
 }
 
 update();
