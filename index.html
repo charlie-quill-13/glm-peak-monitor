@@ -49,27 +49,24 @@ body {
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
 const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
-const PROMO_END_2026 = new Date('2026-10-01T00:00:00Z'); // Extended through September 2026
+// Promo is now permanent — no expiry (updated Aug 2026)
 
 function update() {
   const now = new Date();
   const utcH = now.getUTCHours();
-  const isPromo = now < PROMO_END_2026;
   const isPeak = utcH >= PEAK_START && utcH < PEAK_END;
 
   let mult, label, cls, emoji;
   if (isPeak) {
     mult = 3; label = 'PEAK'; cls = 'peak'; emoji = '🔴';
-  } else if (isPromo) {
-    mult = 1; label = 'OFF-PEAK (PROMO)'; cls = 'offpeak-promo'; emoji = '🟢';
   } else {
-    mult = 2; label = 'OFF-PEAK'; cls = 'offpeak-normal'; emoji = '🟠';
+    mult = 1; label = 'OFF-PEAK'; cls = 'offpeak-promo'; emoji = '🟢';
   }
 
   document.body.className = cls;
   document.getElementById('status').textContent = label;
   document.getElementById('multiplier').textContent = mult + '×';
-  document.getElementById('badge').textContent = isPromo ? '🔥 Promo active: 1× off-peak' : 'Standard rates';
+  document.getElementById('badge').textContent = '🔥 1× off-peak (permanent)';
 
   // Favicon
   const colors = { peak: 'ff6b6b', 'offpeak-promo': '51cf66', 'offpeak-normal': 'fcc419' };
@@ -90,15 +87,6 @@ function update() {
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
   document.getElementById('countdown').textContent = `Changes in ${h}h ${m}m ${s}s`;
-
-  // Promo expiry
-  if (isPromo) {
-    const pDiff = PROMO_END_2026 - now;
-    const pDays = Math.ceil(pDiff / 86400000);
-    document.getElementById('promo-expiry').textContent = `Promo ends in ${pDays} days (September 30, 2026)`;
-  } else {
-    document.getElementById('promo-expiry').textContent = '';
-  }
 
   // Local peak hours display
   const localPeakStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PEAK_START)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
