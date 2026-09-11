@@ -64,6 +64,8 @@ body {
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
 const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
+// 3× peak windows are weekdays-only (UTC+8); weekends are 1× all day
+const isWeekendUTC = d => { const day = d.getUTCDay(); return day === 0 || day === 6; };
 // Standard deal unchanged (still in place)
 // Temporary campaign ON TOP: GLM-5.3-Flash, Sep 3–20 2026, 23:00–09:00 UTC+8 (15:00–01:00 UTC)
 const CAMPAIGN_START = Date.UTC(2026, 8, 2, 16, 0, 0);  // Sep 3 00:00 UTC+8
@@ -72,7 +74,9 @@ const CAMPAIGN_END   = Date.UTC(2026, 8, 20, 15, 59, 59); // Sep 20 23:59 UTC+8
 function update() {
   const now = new Date();
   const utcH = now.getUTCHours();
-  const isPeak = utcH >= PEAK_START && utcH < PEAK_END;
+  const cstDay = new Date(now.getTime() + 8 * 3600000).getUTCDay();
+  const weekend = cstDay === 0 || cstDay === 6;
+  const isPeak = !weekend && utcH >= PEAK_START && utcH < PEAK_END;
   const campaignRunning = now >= CAMPAIGN_START && now <= CAMPAIGN_END;
 
   // --- Flash campaign card (own card, local TZ, live/waiting state) ---
@@ -117,32 +121,34 @@ function update() {
   document.body.className = cls;
   document.getElementById('status').textContent = label;
   document.getElementById('multiplier').textContent = mult + '×';
-  document.getElementById('badge').textContent = '🔥 1× off-peak (permanent)';
+  document.getElementById('badge').textContent = weekend ? '🛋️ Weekend · 1× all day' : '🔥 1× off-peak (permanent)';
 
   // Favicon
   const colors = { peak: 'ff6b6b', 'offpeak-promo': '51cf66', 'offpeak-normal': 'fcc419' };
   document.getElementById('favicon').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23${colors[cls]}'/></svg>`;
-  document.title = `${emoji} ${mult}× — ${label}`;
+  document.title = `${emoji} ${mult}× — ${weekend ? 'WEEKEND' : label}`;
 
-  // Countdown to next change
-  let next;
+  // Countdown to next change (on weekends: countdown to Monday's peak)
+  let next, cdLabel = 'Changes in';
   if (isPeak) {
     next = new Date(now); next.setUTCHours(PEAK_END, 0, 0, 0);
     if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
   } else {
     next = new Date(now); next.setUTCHours(PEAK_START, 0, 0, 0);
     if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+    while (isWeekendUTC(next)) next.setUTCDate(next.getUTCDate() + 1);
+    if (weekend) cdLabel = 'Peak returns ' + next.toLocaleDateString(undefined, { weekday: 'short' }) + ' · in';
   }
   const diff = next - now;
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  document.getElementById('countdown').textContent = `Changes in ${h}h ${m}m ${s}s`;
+  document.getElementById('countdown').textContent = `${cdLabel} ${h}h ${m}m ${s}s`;
 
   // Local peak hours display
   const localPeakStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PEAK_START)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   const localPeakEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PEAK_END)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('local-peak').textContent = `${localPeakStart}–${localPeakEnd} peak (local)`;
+  document.getElementById('local-peak').textContent = `${localPeakStart}–${localPeakEnd} peak · Mon–Fri (local)`;
 }
 
 update();
