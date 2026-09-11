@@ -35,6 +35,7 @@ body {
 .offpeak-promo .promo-badge { background: rgba(81,207,102,0.2); }
 .offpeak-normal .promo-badge { background: rgba(252,196,25,0.2); }
 .promo-expiry { font-size: 0.8rem; opacity: 0.4; margin-top: 0.5rem; }
+.campaign-badge { display: none; padding: 0.35rem 0.8rem; border-radius: 0.3rem; font-size: 0.85rem; margin-top: 0.9rem; background: rgba(120,140,255,0.15); border: 1px solid rgba(120,140,255,0.35); }
 </style>
 </head>
 <body>
@@ -43,18 +44,36 @@ body {
   <div class="multiplier" id="multiplier">—</div>
   <div class="countdown" id="countdown"></div>
   <div class="promo-badge" id="badge"></div>
+  <div class="campaign-badge" id="campaign-badge"></div>
   <div class="promo-expiry" id="promo-expiry"></div>
-  <div class="meta">GLM-5.2 &amp; GLM-5-Turbo · <span id="local-peak"></span></div>
+  <div class="meta">GLM-5.3 &amp; GLM-5.3-Flash · <span id="local-peak"></span></div>
 </div>
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
 const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
-// Promo is now permanent — no expiry (updated Aug 2026)
+// Standard deal unchanged (still in place)
+// Temporary campaign ON TOP: GLM-5.3-Flash, Sep 3–20 2026, 23:00–09:00 UTC+8 (15:00–01:00 UTC)
+const CAMPAIGN_START = Date.UTC(2026, 8, 2, 16, 0, 0);  // Sep 3 00:00 UTC+8
+const CAMPAIGN_END   = Date.UTC(2026, 8, 20, 15, 59, 59); // Sep 20 23:59 UTC+8
+const inCampaignWindow = utcH => utcH >= 15 || utcH < 1;
 
 function update() {
   const now = new Date();
   const utcH = now.getUTCHours();
   const isPeak = utcH >= PEAK_START && utcH < PEAK_END;
+  const campaignRunning = now >= CAMPAIGN_START && now <= CAMPAIGN_END;
+  const campaignLive = campaignRunning && inCampaignWindow(utcH);
+
+  const cb = document.getElementById('campaign-badge');
+  if (campaignLive) {
+    cb.style.display = 'inline-block';
+    cb.textContent = '⚡ Flash campaign LIVE: GLM-5.3-Flash 2× quota (API) · ZCode free';
+  } else if (campaignRunning) {
+    cb.style.display = 'inline-block';
+    cb.textContent = '⚡ Flash campaign daily 23:00–09:00 UTC+8 · ends Sep 20';
+  } else {
+    cb.style.display = 'none';
+  }
 
   let mult, label, cls, emoji;
   if (isPeak) {
