@@ -11,8 +11,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.4rem;
+  padding: 2rem 1rem;
   transition: background 0.5s;
 }
 .peak { background: #1a0a0a; color: #ff6b6b; }
@@ -35,7 +38,11 @@ body {
 .offpeak-promo .promo-badge { background: rgba(81,207,102,0.2); }
 .offpeak-normal .promo-badge { background: rgba(252,196,25,0.2); }
 .promo-expiry { font-size: 0.8rem; opacity: 0.4; margin-top: 0.5rem; }
-.campaign-badge { display: none; padding: 0.35rem 0.8rem; border-radius: 0.3rem; font-size: 0.85rem; margin-top: 0.9rem; background: rgba(120,140,255,0.15); border: 1px solid rgba(120,140,255,0.35); }
+.campaign-card { display: none; padding: 2rem 3rem; }
+.campaign-card.live { display: block; background: rgba(96,124,255,0.12); border-color: rgba(128,150,255,0.5); }
+.campaign-card.live .status, .campaign-card.live .multiplier { color: #93b1ff; }
+.campaign-card.waiting { display: block; opacity: 0.55; }
+.campaign-card .multiplier { font-size: 3rem; letter-spacing: -1px; }
 </style>
 </head>
 <body>
@@ -44,9 +51,15 @@ body {
   <div class="multiplier" id="multiplier">—</div>
   <div class="countdown" id="countdown"></div>
   <div class="promo-badge" id="badge"></div>
-  <div class="campaign-badge" id="campaign-badge"></div>
   <div class="promo-expiry" id="promo-expiry"></div>
   <div class="meta">GLM-5.3 &amp; GLM-5.3-Flash · <span id="local-peak"></span></div>
+</div>
+<div class="card campaign-card" id="campaign-card">
+  <div class="status" id="camp-status"></div>
+  <div class="multiplier" id="camp-mult"></div>
+  <div class="countdown" id="camp-countdown"></div>
+  <div class="meta" id="camp-window"></div>
+  <div class="meta">GLM-5.3-Flash only · API: 2× quota · ZCode ≥3.10: free · campaign ends Sep 20, 2026</div>
 </div>
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
@@ -55,24 +68,43 @@ const PEAK_END = 10;    // 18:00 UTC+8 = 10:00 UTC
 // Temporary campaign ON TOP: GLM-5.3-Flash, Sep 3–20 2026, 23:00–09:00 UTC+8 (15:00–01:00 UTC)
 const CAMPAIGN_START = Date.UTC(2026, 8, 2, 16, 0, 0);  // Sep 3 00:00 UTC+8
 const CAMPAIGN_END   = Date.UTC(2026, 8, 20, 15, 59, 59); // Sep 20 23:59 UTC+8
-const inCampaignWindow = utcH => utcH >= 15 || utcH < 1;
 
 function update() {
   const now = new Date();
   const utcH = now.getUTCHours();
   const isPeak = utcH >= PEAK_START && utcH < PEAK_END;
   const campaignRunning = now >= CAMPAIGN_START && now <= CAMPAIGN_END;
-  const campaignLive = campaignRunning && inCampaignWindow(utcH);
 
-  const cb = document.getElementById('campaign-badge');
-  if (campaignLive) {
-    cb.style.display = 'inline-block';
-    cb.textContent = '⚡ Flash campaign LIVE: GLM-5.3-Flash 2× quota (API) · ZCode free';
-  } else if (campaignRunning) {
-    cb.style.display = 'inline-block';
-    cb.textContent = '⚡ Flash campaign daily 23:00–09:00 UTC+8 · ends Sep 20';
+  // --- Flash campaign card (own card, local TZ, live/waiting state) ---
+  const camp = document.getElementById('campaign-card');
+  if (campaignRunning) {
+    // window: 23:00-09:00 UTC+8 = 15:00 UTC -> 01:00 UTC next day (10h)
+    let winStart = new Date(now); winStart.setUTCHours(15, 0, 0, 0);
+    if (winStart > now) winStart.setUTCDate(winStart.getUTCDate() - 1);
+    const winEnd = new Date(winStart.getTime() + 10 * 3600000);
+    const inWindow = now >= winStart && now < winEnd;
+    let dispStart = new Date(winStart), dispEnd = new Date(winEnd);
+    if (!inWindow) {
+      dispStart = new Date(winEnd); dispStart.setUTCHours(15, 0, 0, 0);
+      if (dispStart <= now) dispStart.setUTCDate(dispStart.getUTCDate() + 1);
+      dispEnd = new Date(dispStart.getTime() + 10 * 3600000);
+    }
+    const fmt = d => d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('camp-window').textContent = `Daily ${fmt(dispStart)}–${fmt(dispEnd)} (your time)`;
+    const fmtCd = ms => `${Math.floor(ms / 3600000)}h ${Math.floor((ms % 3600000) / 60000)}m`;
+    if (inWindow) {
+      camp.className = 'card campaign-card live';
+      document.getElementById('camp-status').textContent = '⚡ FLASH CAMPAIGN LIVE';
+      document.getElementById('camp-mult').textContent = '2×';
+      document.getElementById('camp-countdown').textContent = `2× quota ends in ${fmtCd(winEnd - now)}`;
+    } else {
+      camp.className = 'card campaign-card waiting';
+      document.getElementById('camp-status').textContent = 'FLASH CAMPAIGN · NOT ACTIVE NOW';
+      document.getElementById('camp-mult').textContent = '2×';
+      document.getElementById('camp-countdown').textContent = `Starts in ${fmtCd(dispStart - now)}`;
+    }
   } else {
-    cb.style.display = 'none';
+    camp.style.display = 'none';
   }
 
   let mult, label, cls, emoji;
