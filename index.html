@@ -59,7 +59,7 @@ body {
   <div class="multiplier" id="camp-mult"></div>
   <div class="countdown" id="camp-countdown"></div>
   <div class="meta" id="camp-window"></div>
-  <div class="meta">GLM-5.3-Flash only · API: 2× quota · ZCode ≥3.10: free · campaign ends Sep 20, 2026</div>
+  <div class="meta">GLM-5.3-Flash only · API: 2× quota · ZCode ≥3.10: free · campaign ends Oct 7, 2026 (extended)</div>
 </div>
 <script>
 const PEAK_START = 6;   // 14:00 UTC+8 = 06:00 UTC
@@ -69,7 +69,7 @@ const isWeekendUTC = d => { const day = d.getUTCDay(); return day === 0 || day =
 // Standard deal unchanged (still in place)
 // Temporary campaign ON TOP: GLM-5.3-Flash, Sep 3–20 2026, 23:00–09:00 UTC+8 (15:00–01:00 UTC)
 const CAMPAIGN_START = Date.UTC(2026, 8, 2, 16, 0, 0);  // Sep 3 00:00 UTC+8
-const CAMPAIGN_END   = Date.UTC(2026, 8, 20, 15, 59, 59); // Sep 20 23:59 UTC+8
+const CAMPAIGN_END   = Date.UTC(2026, 9, 7, 15, 59, 59); // Oct 7 23:59 UTC+8 (extended from Sep 20)
 
 function update() {
   const now = new Date();
